@@ -45,12 +45,8 @@ def total_carrots_eaten(garden):
             else:
                 start_x = N / 2 - 1
         else:
-            potential_center_points = [(M / 2 - 1, N / 2 - 1), (M / 2 - 1, N / 2), (M / 2, N / 2), (M / 2, N / 2 - 1)]
-            current_max = [(0, 0), 0]
-            for y, x in potential_center_points:
-                if garden[y][x] > current_max[1]:
-                    current_max = [(y, x), garden[y][x]]
-            start_x, start_y = current_max[0][1], current_max[0][0]
+            biggest_around_center = find_next_biggest(M / 2, N / 2, [(-1, -1), (-1, 0), (0, -1)], garden)
+            start_x, start_y = biggest_around_center[0][1], biggest_around_center[0][0]
 
     # set counter: start from starting point value
     counter = garden[y][x]
@@ -59,21 +55,33 @@ def total_carrots_eaten(garden):
     # set pointer from starting point
     curr_y = start_y
     curr_x = start_x
-    potential_next = [(curr_y, curr_x - 1), (curr_y, curr_x + 1), (curr_y - 1, curr_x), (curr_y + 1, curr_x)]
 
-    while not all(garden[y][x] == 0 for y, x in potential_next):
+    rabbit_goes_sleep = False
 
-        current_max = [(0, 0), 0]
+    while not rabbit_goes_sleep:
 
-        for y, x in potential_next:
-            if garden[y][x] > current_max[1]:
-                current_max = [(y, x), garden[y][x]]
+        next = find_next_biggest(curr_y, curr_x, [(0, -1), (0, 1), (-1, 0), (1, 0)], garden)
 
-        # add next biggest value to counter
-        counter += current_max[1]
-        # set value to 0 as mark of eaten
-        garden[current_max[0][0], current_max[0][1]] = 0
-        # move pointer to next square
-        curr_x, curr_y = current_max[0][1], current_max[0][0]
+        # if next biggest value is 0, means no more carrots nearby to eat, rabbit goes to sleep
+        if next[1] == 0:
+            rabbit_goes_sleep = True
+
+        else:
+            # add next biggest value to counter
+            counter += next[1]
+            # set value to 0 as mark of eaten
+            garden[next[0][0], next[0][1]] = 0
+            # move current pointer to next square
+            curr_x, curr_y = next[0][1], next[0][0]
 
     return counter
+
+
+def find_next_biggest(curr_y, curr_x, directions, garden):
+    """Determine next biggest value's location represented by (y, x)."""
+    current_max = [(curr_y, curr_x), garden[curr_y][curr_x]]
+    for y, x in directions:
+        if garden[curr_y + y][curr_x + x] > current_max[1] and curr_y + y >= 0 and curr_x + x >= 0:
+            current_max = [(y, x), garden[y][x]]
+    return current_max
+
